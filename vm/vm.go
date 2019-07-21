@@ -1,64 +1,37 @@
 package vm
 
-import (
-	"strconv"
-)
-
-const (
-	INTEGER = "INTEGER"
-	PLUS = "PLUS"
-	MINUS = "MINUS"
-	EOF = "EOF"
-)
-
 type Interpreter struct {
-	Text string
-	Pos int
-	CurrentToken *Token
-	CurrentChar *rune
+	lexer *Lexer
+	token *Token
 }
 
-func (itp *Interpreter) init() {
-	itp.CurrentToken = new(Token)
-	itp.CurrentChar = new(rune)
-	*itp.CurrentChar = rune(itp.Text[itp.Pos])
+func (itp *Interpreter) init(lexer *Lexer) {
+	itp.lexer = lexer
+	itp.lexer.CurrentToken = new(Token)
+	itp.lexer.CurrentChar = new(rune)
+	*(itp.lexer).CurrentChar = rune(itp.lexer.Text[itp.lexer.Pos])
+	// set to the first token after initialization
+	itp.lexer.NextToken()
+	itp.token = itp.lexer.CurrentToken
 }
 
 
 func (itp *Interpreter) eat(typ string) {
-	if itp.CurrentToken.Type == typ {
-		itp.NextToken()
+	if itp.token.Type == typ {
+		itp.lexer.NextToken()
 	} else {
-		panic("类型不合法！")
+		panic("type inconsistent")
 	}
 }
 
 func Eval(text string) int {
-	itp := &Interpreter{Text: text}
-	itp.init()
-	// here is parsing (syntax analysis)
-	itp.NextToken()
-	left,_ := strconv.Atoi(itp.CurrentToken.Value)
-	itp.eat(INTEGER)
+	itp := &Interpreter{}
+	itp.init(&Lexer{Text: text})
 
-	op := itp.CurrentToken.Value
-	if op == "+" {
-		itp.eat(PLUS)
-	} else {
-		itp.eat(MINUS)
-	}
-	
-	right,_ := strconv.Atoi(itp.CurrentToken.Value)
-	itp.eat(INTEGER)
-	 
-	// here is interpreting
-	if op == "+" {
-		return left + right
-	}
+	return itp.expr()
+}
 
-	if op == "-" {
-		return left - right
-	}
-	
-	panic("不支持的语法")
+
+func errorSyntax() {
+	panic("invalid syntax")
 }
