@@ -10,6 +10,8 @@ const (
 	MINUS = "MINUS"
 	MUL = "MUL"
 	DIV = "DIV"
+	LPAREN = "("
+	RPAREN = ")"
 	EOF = "EOF"
 )
 
@@ -61,6 +63,18 @@ func (lexer *Lexer) NextToken() {
 		if char == '/' {
 			lexer.advance()
 			*lexer.CurrentToken = Token{DIV, string(char)}
+			return 
+		}
+
+		if char == '(' {
+			lexer.advance()
+			*lexer.CurrentToken = Token{LPAREN, string(char)}
+			return 
+		}
+
+		if char == ')' {
+			lexer.advance()
+			*lexer.CurrentToken = Token{RPAREN, string(char)}
 			return 
 		}
 

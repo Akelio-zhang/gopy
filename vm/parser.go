@@ -8,12 +8,21 @@ import (
    and the transformation guidelines.
 */
 func (itp *Interpreter) factor() int {
-	num, err := strconv.Atoi(itp.token.Value)
-	if err != nil {
-		panic("invalid number")
+	token := itp.token
+	if token.Type == INTEGER {
+		num, err := strconv.Atoi(itp.token.Value)
+		if err != nil {
+			panic("invalid number")
+		}
+		itp.eat(INTEGER)
+		return num
+	} else if token.Type == LPAREN {
+		itp.eat(LPAREN)
+		exprResult := itp.expr()
+		itp.eat(RPAREN)
+		return exprResult
 	}
-	itp.eat(INTEGER)
-	return num
+	panic("invalid syntax")
 }
 
 func (itp *Interpreter) term() int {
