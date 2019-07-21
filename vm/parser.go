@@ -16,7 +16,7 @@ func (itp *Interpreter) factor() int {
 	return num
 }
 
-func (itp *Interpreter) expr() int {
+func (itp *Interpreter) term() int {
 	result := itp.factor()
 	for itp.token.Type == MUL || itp.token.Type == DIV {
 		token := itp.token
@@ -26,6 +26,21 @@ func (itp *Interpreter) expr() int {
 		} else if token.Type == DIV {
 			itp.eat(DIV)
 			result = result / itp.factor()
+		}
+	}
+	return result
+}
+
+func (itp *Interpreter) expr() int {
+	result := itp.term()
+	for itp.token.Type == PLUS || itp.token.Type == MINUS {
+		token := itp.token
+		if token.Type == PLUS {
+			itp.eat(PLUS)
+			result = result + itp.term()
+		} else if token.Type == MINUS {
+			itp.eat(MINUS)
+			result = result - itp.term()
 		}
 	}
 	return result
