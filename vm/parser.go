@@ -9,11 +9,16 @@ type AST interface {
 	visit() int
  }
 
-type Tree struct {
-	left *Tree
+type BinOp struct {
+	left *AST
 	node Token
-	tp string
-	right *Tree
+	right *AST
+}
+
+type Num struct {
+	left *AST
+	node Token
+	right *AST
 }
 
 func (ps *Parser) init() {
@@ -36,11 +41,11 @@ func (ps *Parser) eat(typ string) {
 	}
 }
 
-func (ps *Parser) factor() Tree {
+func (ps *Parser) factor() AST {
 	token := *ps.token
 	if token.Type == INTEGER {
 		ps.eat(INTEGER)
-		return Tree{node: token, tp: NUM}
+		return Num{node: token}
 	} else if token.Type == LPAREN {
 		ps.eat(LPAREN)
 		exprTree := ps.expr()
@@ -50,7 +55,7 @@ func (ps *Parser) factor() Tree {
 	panic("invalid syntax")
 }
 
-func (ps *Parser) term() Tree {
+func (ps *Parser) term() AST {
 	tree := ps.factor()
 	for ps.token.Type == MUL || ps.token.Type == DIV {
 		token := *ps.token
@@ -61,12 +66,12 @@ func (ps *Parser) term() Tree {
 		}
 		left := tree
 		right := ps.factor()
-		tree = Tree{left: &left, node: token, tp: BINOP, right: &right}
+		tree = BinOp{left: &left, node: token, right: &right}
 	}
 	return tree
 }
 
-func (ps *Parser) expr() Tree {
+func (ps *Parser) expr() AST {
 	tree := ps.term()
 	for ps.token.Type == PLUS || ps.token.Type == MINUS {
 		token := *ps.token
@@ -77,12 +82,12 @@ func (ps *Parser) expr() Tree {
 		}
 		left := tree
 		right := ps.term()
-		tree = Tree{left: &left, node: token, tp: BINOP, right: &right}
+		tree = BinOp{left: &left, node: token, right: &right}
 	}
-	
+
 	return tree
 }
 
-func(ps *Parser) parse() Tree {
+func(ps *Parser) parse() AST {
 	return ps.expr()
 }
