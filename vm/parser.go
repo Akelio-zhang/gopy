@@ -68,6 +68,7 @@ func (ps *Parser) factor() AST {
 }
 
 func (ps *Parser) term() AST {
+	// term : factor ((MUL | DIV) factor)*
 	tree := ps.factor()
 	for ps.token.Type == MUL || ps.token.Type == DIV {
 		token := *ps.token
@@ -84,6 +85,7 @@ func (ps *Parser) term() AST {
 }
 
 func (ps *Parser) expr() AST {
+	// expr: term ((PLUS | MINUS) term)*
 	tree := ps.term()
 	for ps.token.Type == PLUS || ps.token.Type == MINUS {
 		token := *ps.token
