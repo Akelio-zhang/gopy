@@ -29,10 +29,19 @@ func (tree BinOp) visit() int {
 	}
 	if token.Type == DIV {
 		return left.visit() / right.visit()
-	} else {
-		errorSyntax()
 	}
-	return -1
+	panic("syntax error")
+}
+
+func (tree UnaryOp) visit() int {
+	token := tree.node
+	expr := tree.expr
+	if token.Type == PLUS {
+		return expr.visit()
+	} else if token.Type == MINUS {
+		return -expr.visit()
+	}
+	panic("syntax error")
 }
 
 func (tree Num) visit() int {

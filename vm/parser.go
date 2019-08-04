@@ -15,6 +15,11 @@ type BinOp struct {
 	right *AST
 }
 
+type UnaryOp struct {
+	node Token
+	expr AST
+}
+
 type Num struct {
 	left *AST
 	node Token
@@ -42,8 +47,15 @@ func (ps *Parser) eat(typ string) {
 }
 
 func (ps *Parser) factor() AST {
+	// factor : (PLUS | MINUS) factor | INTEGER | LPAREN expr RPAREN
 	token := *ps.token
-	if token.Type == INTEGER {
+	if token.Type == PLUS {
+		ps.eat(PLUS)
+		return UnaryOp{node: token, expr: ps.factor()}
+	} else if token.Type == MINUS {
+		ps.eat(MINUS)
+		return UnaryOp{node: token, expr: ps.factor()}
+	} else if token.Type == INTEGER {
 		ps.eat(INTEGER)
 		return Num{node: token}
 	} else if token.Type == LPAREN {
