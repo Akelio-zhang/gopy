@@ -18,7 +18,7 @@ func main() {
 	if !isDebug {
 		for true {
 			reader := bufio.NewReader(os.Stdin)
-			fmt.Print("Calc> ")
+			fmt.Print("Zoe> ")
 			text, err := reader.ReadString('\n')
 			text = text[0:len(text)-1]
 			if err != nil {

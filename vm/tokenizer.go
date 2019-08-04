@@ -12,6 +12,8 @@ const (
 	DIV = "DIV"
 	LPAREN = "("
 	RPAREN = ")"
+	BINOP = "BINOP"
+	NUM = "NUM"
 	EOF = "EOF"
 )
 

@@ -1,36 +1,65 @@
 package vm
 
+import (
+	"strconv"
+)
+
 type Interpreter struct {
-	lexer *Lexer
-	token *Token
+	parser *Parser
+	tree AST
 }
 
-func (itp *Interpreter) init(lexer *Lexer) {
-	itp.lexer = lexer
-	itp.lexer.CurrentToken = new(Token)
-	itp.lexer.CurrentChar = new(rune)
-	*(itp.lexer).CurrentChar = rune(itp.lexer.Text[itp.lexer.Pos])
-	// set to the first token after initialization
-	itp.lexer.NextToken()
-	itp.token = itp.lexer.CurrentToken
+// interpreter initilize
+func (itp *Interpreter) init() {
+	itp.parser.init()
 }
 
-
-func (itp *Interpreter) eat(typ string) {
-	if itp.token.Type == typ {
-		itp.lexer.NextToken()
-	} else {
-		panic("type inconsistent")
+func (tree *Tree) visit() int {
+	token := tree.node
+	nodeType := tree.tp
+	left := tree.left
+	right := tree.right
+	if nodeType == BINOP {
+		if token.Type == PLUS {
+			return left.visit() + right.visit()
+		}
+		if token.Type == MINUS {
+			return left.visit() - right.visit()
+		}
+		if token.Type == MUL {
+			return left.visit() * right.visit()
+		}
+		if token.Type == DIV {
+			return left.visit() / right.visit()
+		} else {
+			errorSyntax()
+		}
 	}
+	if nodeType == NUM {
+		num, err := strconv.Atoi(token.Value)
+		if err != nil {
+			panic("invalid number")
+		}
+		return num
+	} else {
+		errorSyntax()
+	}
+	return -1
+}
+
+func (itp *Interpreter) eval() int {
+	return itp.tree.visit()
 }
 
 func Eval(text string) int {
-	itp := &Interpreter{}
-	itp.init(&Lexer{Text: text})
-
-	return itp.expr()
+	lexer := &Lexer{Text: text}
+	ps := &Parser{lexer: lexer}
+	itp := &Interpreter{parser: ps}
+	itp.init()
+	tree := ps.parse()
+	itp.tree = &tree
+	return itp.eval()
 }
-
 
 func errorSyntax() {
 	panic("invalid syntax")

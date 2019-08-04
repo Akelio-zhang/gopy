@@ -1,56 +1,88 @@
 package vm
 
-import (
-	"strconv"
-)
+type Parser struct {
+	lexer *Lexer
+	token *Token
+}
+
+type AST interface {
+	visit() int
+ }
+
+type Tree struct {
+	left *Tree
+	node Token
+	tp string
+	right *Tree
+}
+
+func (ps *Parser) init() {
+	ps.lexer.CurrentToken = new(Token)
+	ps.lexer.CurrentChar = new(rune)
+	*(ps.lexer).CurrentChar = rune(ps.lexer.Text[ps.lexer.Pos])
+	// set to the first token after initialization
+	ps.lexer.NextToken()
+	ps.token = ps.lexer.CurrentToken
+}
 
 /* Parser function is generated according to context-free grammar(EBNF)
    and the transformation guidelines.
 */
-func (itp *Interpreter) factor() int {
-	token := itp.token
+func (ps *Parser) eat(typ string) {
+	if ps.token.Type == typ {
+		ps.lexer.NextToken()
+	} else {
+		panic("type inconsistent")
+	}
+}
+
+func (ps *Parser) factor() Tree {
+	token := *ps.token
 	if token.Type == INTEGER {
-		num, err := strconv.Atoi(itp.token.Value)
-		if err != nil {
-			panic("invalid number")
-		}
-		itp.eat(INTEGER)
-		return num
+		ps.eat(INTEGER)
+		return Tree{node: token, tp: NUM}
 	} else if token.Type == LPAREN {
-		itp.eat(LPAREN)
-		exprResult := itp.expr()
-		itp.eat(RPAREN)
-		return exprResult
+		ps.eat(LPAREN)
+		exprTree := ps.expr()
+		ps.eat(RPAREN)
+		return exprTree
 	}
 	panic("invalid syntax")
 }
 
-func (itp *Interpreter) term() int {
-	result := itp.factor()
-	for itp.token.Type == MUL || itp.token.Type == DIV {
-		token := itp.token
+func (ps *Parser) term() Tree {
+	tree := ps.factor()
+	for ps.token.Type == MUL || ps.token.Type == DIV {
+		token := *ps.token
 		if token.Type == MUL {
-			itp.eat(MUL)
-			result = result * itp.factor()
+			ps.eat(MUL)
 		} else if token.Type == DIV {
-			itp.eat(DIV)
-			result = result / itp.factor()
+			ps.eat(DIV)
 		}
+		left := tree
+		right := ps.factor()
+		tree = Tree{left: &left, node: token, tp: BINOP, right: &right}
 	}
-	return result
+	return tree
 }
 
-func (itp *Interpreter) expr() int {
-	result := itp.term()
-	for itp.token.Type == PLUS || itp.token.Type == MINUS {
-		token := itp.token
+func (ps *Parser) expr() Tree {
+	tree := ps.term()
+	for ps.token.Type == PLUS || ps.token.Type == MINUS {
+		token := *ps.token
 		if token.Type == PLUS {
-			itp.eat(PLUS)
-			result = result + itp.term()
+			ps.eat(PLUS)
 		} else if token.Type == MINUS {
-			itp.eat(MINUS)
-			result = result - itp.term()
+			ps.eat(MINUS)
 		}
+		left := tree
+		right := ps.term()
+		tree = Tree{left: &left, node: token, tp: BINOP, right: &right}
 	}
-	return result
+	
+	return tree
+}
+
+func(ps *Parser) parse() Tree {
+	return ps.expr()
 }
